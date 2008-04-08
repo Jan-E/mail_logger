@@ -1,0 +1,56 @@
+<?php
+// $Id$
+
+
+function mail_logger_install() {
+  switch ($GLOBALS['db_type']) {
+    case 'mysql':
+    case 'mysqli':
+      db_query("CREATE TABLE {mail_logger} (
+        mlid int(10) unsigned NOT NULL auto_increment,
+        mailkey varchar(255) NOT NULL,
+        `to` varchar(255) NOT NULL,
+        `subject` varchar(255) NOT NULL,
+        body text NOT NULL,
+        `from` varchar(255) NOT NULL,
+        headers text NOT NULL,
+        date_sent int(10) unsigned NOT NULL,
+        PRIMARY KEY  (mlid),
+        KEY `to` (`to`),
+        KEY `from` (`from`),
+        KEY `subject` (`subject`(20)),
+        KEY date_sent (date_sent)
+      ) /*!40100 DEFAULT CHARACTER SET utf8 */");
+      
+  //because modules can modify the mail body, mail_logger must be executed last in order to capture 
+  //the final mail parameters by setting the weight of mail_logger to something ridicolous
+  $filename = drupal_get_path('module', 'mail_logger') .'/mail_logger.module';
+  db_query('UPDATE {system} SET weight = %d WHERE filename = "%s" LIMIT 1', 999, $filename);
+      break;
+    case 'pgsql':
+      db_query("CREATE TABLE {mail_logger} (
+        mlid int(10) unsigned NOT NULL auto_increment,
+        mailkey varchar(255) NOT NULL,
+        `to` varchar(255) NOT NULL,
+        `subject` varchar(255) NOT NULL,
+        body text NOT NULL,
+        `from` varchar(255) NOT NULL,
+        headers text NOT NULL,
+        date_sent int(10) unsigned NOT NULL,
+        PRIMARY KEY  (mlid),
+        KEY `to` (`to`),
+        KEY `from` (`from`),
+        KEY `subject` (`subject`(20)),
+        KEY date_sent (date_sent)
+      )");
+  //because modules can modify the mail body, mail_logger must be executed last in order to capture 
+  //the final mail parameters by setting the weight of mail_logger to something ridicolous
+  $filename = drupal_get_path('module', 'mail_logger') .'/mail_logger.module';
+  db_query('UPDATE {system} SET weight = %d WHERE filename = "%s" LIMIT 1', 999, $filename);
+      break;
+  }
+}
+
+function mail_logger_uninstall() {
+  db_query("DROP TABLE {mail_logger}");
+}
