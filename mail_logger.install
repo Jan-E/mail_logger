@@ -24,8 +24,9 @@ function mail_logger_install() {
       
   //because modules can modify the mail body, mail_logger must be executed last in order to capture 
   //the final mail parameters by setting the weight of mail_logger to something ridicolous
-  $filename = drupal_get_path('module', 'mail_logger') .'/mail_logger.module';
-  db_query('UPDATE {system} SET weight = %d WHERE filename = "%s" LIMIT 1', 999, $filename);
+  $max_weight = db_result(db_query("SELECT weight FROM {system} WHERE name LIKE 'mail_logger'"));
+  db_query("UPDATE {system} SET weight = %d WHERE name LIKE 'mail_logger' LIMIT 1", $max_weight + 999);
+  
       break;
     case 'pgsql':
       db_query("CREATE TABLE {mail_logger} (
@@ -45,12 +46,20 @@ function mail_logger_install() {
       )");
   //because modules can modify the mail body, mail_logger must be executed last in order to capture 
   //the final mail parameters by setting the weight of mail_logger to something ridicolous
-  $filename = drupal_get_path('module', 'mail_logger') .'/mail_logger.module';
-  db_query('UPDATE {system} SET weight = %d WHERE filename = "%s" LIMIT 1', 999, $filename);
+  $max_weight = db_result(db_query("SELECT weight FROM {system} WHERE name LIKE 'mail_logger'"));
+  db_query("UPDATE {system} SET weight = %d WHERE name LIKE 'mail_logger' LIMIT 1", $max_weight + 999);
       break;
   }
 }
-
+/**
+ * Implementation of hook_enable()
+ *
+ */
+function mail_logger_enable() {
+  //in case there's another module that wants to be executed last we will run these queries to restore highest weight for mail_logger
+  $max_weight = db_result(db_query("SELECT weight FROM {system} WHERE name LIKE 'mail_logger'"));
+  db_query("UPDATE {system} SET weight = %d WHERE name LIKE 'mail_logger' LIMIT 1", $max_weight + 999);
+}
 function mail_logger_uninstall() {
   db_query("DROP TABLE {mail_logger}");
 }
