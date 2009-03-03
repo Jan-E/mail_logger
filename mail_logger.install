@@ -1,65 +1,94 @@
 <?php
 // $Id$
 
-
-function mail_logger_install() {
-  switch ($GLOBALS['db_type']) {
-    case 'mysql':
-    case 'mysqli':
-      db_query("CREATE TABLE {mail_logger} (
-        mlid int(10) unsigned NOT NULL auto_increment,
-        mailkey varchar(255) NOT NULL,
-        `to` varchar(255) NOT NULL,
-        `subject` varchar(255) NOT NULL,
-        body text NOT NULL,
-        `from` varchar(255) NOT NULL,
-        headers text NOT NULL,
-        date_sent int(10) unsigned NOT NULL,
-        PRIMARY KEY  (mlid),
-        KEY `to` (`to`),
-        KEY `from` (`from`),
-        KEY `subject` (`subject`(20)),
-        KEY date_sent (date_sent)
-      ) /*!40100 DEFAULT CHARACTER SET utf8 */");
-      
-  //because modules can modify the mail body, mail_logger must be executed last in order to capture 
-  //the final mail parameters by setting the weight of mail_logger to something ridicolous
-  $max_weight = db_result(db_query("SELECT weight FROM {system} WHERE name LIKE 'mail_logger'"));
-  db_query("UPDATE {system} SET weight = %d WHERE name LIKE 'mail_logger' LIMIT 1", $max_weight + 999);
+function mail_logger_schema() {
+  $schema = array();
+  $schema['mail_logger'] = array(
+    'description'           => t('Mail Logger table stores outgoing mails'),
+    'fields'      => array(
+      'mlid'          => array(
+        'description'   => t('Mail Logger entry ID'),
+        'type'          => 'serial',
+        'not null'      => TRUE,
+        'unsigned'      => TRUE,
+      ),
+      'mailkey'       => array(
+        'description'   => t('a key identifying the mail type'),
+        'type'          => 'varchar',
+        'length'        => 255,
+        'not null'      => TRUE,
+      ),
+      'to'            => array(
+        'description'   => t('to whom this mail is going'),
+        'type'          => 'varchar',
+        'length'        => 255,
+        'not null'      => TRUE,
+      ),
+      'subject'       => array(
+        'description'   => t('Mail subject'),
+        'type'          => 'varchar',
+        'length'        => 255,
+        'not null'      => TRUE,
+      ),
+      'body'          => array(
+        'description'   => t('Body text of the mail'),
+        'type'          => 'text',
+        'not null'      => TRUE,
+        'size'          => 'big',
+      ),
+      'from'          => array(
+        'description'   => t('the FROM email address'),
+        'type'          => 'varchar',
+        'length'        => 255,
+        'not null'      => TRUE,
+      ),
+      'headers'       => array(
+        'description'   => t('Headers of the outgoing mail'),
+        'type'          => 'text',
+        'not null'      => TRUE,
+        'size'          => 'big',
+      ),
+      'date_sent'     => array(
+        'description'   => t('Mail Logger entry ID'),
+        'type'          => 'int',
+        'not null'      => TRUE,
+        'unsigned'      => TRUE,
+      ),
+      'language'      => array(
+        'description'   => t('Language code'),
+        'type'          => 'varchar',
+        'length'        => 20,
+        'not null'      => TRUE,
+      ),
+    ),
+    'primary key'     => array('`mlid`'),
+    'indexes'         => array(
+      '`to`'              => array('`to`'),
+      '`from`'            => array('`from`'),
+      '`subject`'         => array(array('`subject`', 20)),
+      '`date_sent`'       => array('`date_sent`'),
+      '`language`'        => array('`language`'),
+    ),
+  );
   
-      break;
-    case 'pgsql':
-      db_query("CREATE TABLE {mail_logger} (
-        mlid int(10) unsigned NOT NULL auto_increment,
-        mailkey varchar(255) NOT NULL,
-        `to` varchar(255) NOT NULL,
-        `subject` varchar(255) NOT NULL,
-        body text NOT NULL,
-        `from` varchar(255) NOT NULL,
-        headers text NOT NULL,
-        date_sent int(10) unsigned NOT NULL,
-        PRIMARY KEY  (mlid),
-        KEY `to` (`to`),
-        KEY `from` (`from`),
-        KEY `subject` (`subject`(20)),
-        KEY date_sent (date_sent)
-      )");
-  //because modules can modify the mail body, mail_logger must be executed last in order to capture 
-  //the final mail parameters by setting the weight of mail_logger to something ridicolous
-  $max_weight = db_result(db_query("SELECT weight FROM {system} WHERE name LIKE 'mail_logger'"));
-  db_query("UPDATE {system} SET weight = %d WHERE name LIKE 'mail_logger' LIMIT 1", $max_weight + 999);
-      break;
-  }
+  return $schema;
 }
+function mail_logger_install() {
+  drupal_install_schema('mail_logger');
+  
+}
+function mail_logger_uninstall() {
+  drupal_uninstall_schema('mail_logger');
+}
+
 /**
  * Implementation of hook_enable()
  *
  */
 function mail_logger_enable() {
-  //in case there's another module that wants to be executed last we will run these queries to restore highest weight for mail_logger
-  $max_weight = db_result(db_query("SELECT weight FROM {system} WHERE name LIKE 'mail_logger'"));
-  db_query("UPDATE {system} SET weight = %d WHERE name LIKE 'mail_logger' LIMIT 1", $max_weight + 999);
+  // Because modules can modify the outgoing mail, mail_logger must be executed last in order to capture 
+  // the final mail parameters by setting the weight of mail_logger to something large.
+  $max_weight = db_result(db_query("select max(weight) from {system} where name != 'mail_logger'"));
+  db_query("UPDATE {system} SET weight = %d WHERE name = 'mail_logger'", $max_weight + 100);
 }
-function mail_logger_uninstall() {
-  db_query("DROP TABLE {mail_logger}");
-}
+

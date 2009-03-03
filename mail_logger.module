@@ -1,9 +1,9 @@
 <?php
 // $Id$
+ 
 /**
  * implementation of hook_perm().
  *
- * @return unknown
  */
 function mail_logger_perm() {
   return array('access mail logger');
@@ -12,33 +12,38 @@ function mail_logger_perm() {
 /**
  * Implementation of hook_menu().
  */
-function mail_logger_menu($may_cache) {
+function mail_logger_menu() {
   $items = array();
-
-  if (!$may_cache) {
-    $items[] = array('path' => 'admin/logs/mail-logger', 'title' => t('Outgoing Mail log entries'),
-      'description' => t('View Mails that have been sent from this site.'),
-      'callback' => 'mail_logger_overview',
-      'weight' => -1,
-      'access'  => user_access('access mail logger'),
-     );
-    $items[] = array('path' => 'admin/logs/mail-logger/mail', 'title' => t('Outgoing Mail log entries'),
-      'description' => t('View information about a single logged mail entry'),
-      'callback' => 'mail_logger_read_mail',
-      'weight' => -1,
-      'access'  => user_access('access mail logger'),
-      'type'    => MENU_CALLBACK,
-     );
-  }
+  $items['admin/reports/mail-logger'] = array(
+    'title'             => t('Outgoing Mail log entries'),
+    'description'       => t('View Mails that have been sent from this site.'),
+    'page callback'     => 'mail_logger_overview',
+    'access arguments'  => array('access mail logger'),
+    'type'              => MENU_NORMAL_ITEM,
+   );
+  $items['admin/reports/mail-logger/mail/%'] = array(
+    'title'             => t('Outgoing Mail log entries'),
+    'description'       => t('View information about a single logged mail entry'),
+    'page callback'     => 'mail_logger_read_mail',
+    'page arguments'    => array(4),
+    'access arguments'  => array('access mail logger'),
+    'type'              => MENU_CALLBACK,
+   );
 
   return $items;
 }
-
+function mail_logger_theme() {
+  return array(
+    'mail_logger_read_mail' => array(
+      'arguments'    => array('mlid' => NULL),
+    ),
+  );
+}
 function mail_logger_read_mail($id) {
   if(!isset($id) || !is_numeric($id)) {
     return 'Invalid Mail Logger ID parameter'; 
   }
-  else if ($result = db_query('SELECT * FROM {mail_logger} WHERE mlid = %d', $id) ) {
+  else if ($result = db_query('SELECT * FROM {mail_logger} WHERE mlid = %d LIMIT 1', $id) ) {
     drupal_add_css(drupal_get_path('module', 'mail_logger') .'/mail_logger.css');
     return theme('mail_logger_read_mail', db_fetch_object($result));
   }
@@ -65,21 +70,27 @@ function theme_mail_logger_read_mail($mail) {
  *
  * Purpose of this function is to log all outgoing mail
  */
-function mail_logger_mail_alter(&$mailkey, &$to, &$subject, &$body, &$from, &$headers = '') {
+function mail_logger_mail_alter(&$message) {
+//  &$mailkey, &$to, &$subject, &$body, &$from, &$headers = ''
+//drupal_set_message('<pre>'. print_r($message, 1) .'</pre>');
+//return ;
+//this line taken from mail.inc:drupal_mail()
+  $message['body'] = is_array($message['body']) ? drupal_wrap_mail(implode("\n\n", $message['body'])) : drupal_wrap_mail($message['body']);
   $args = array(
-    $mailkey,
-    $to,
-    $subject,
-    $body,
-    $from,
-    serialize($headers),
+    $message['id'],
+    $message['to'],
+    $message['subject'],
+    $message['body'],
+    $message['from'],
+    serialize($message['headers']),
     time(),
+    $message['language']->language,
   );
   
   db_query("INSERT INTO {mail_logger} (
-  `mlid` , `mailkey` , `to` , `subject` , `body` , `from` , `headers`, `date_sent`
+  `mlid` , `mailkey` , `to` , `subject` , `body` , `from` , `headers`, `date_sent`, `language`
   ) VALUES ( 
-  NULL, '%s', '%s', '%s', '%s', '%s', '%s', %d )", $args);
+  NULL, '%s', '%s', '%s', '%s', '%s', '%s', %d, '%s' )", $args);
 
 }
 /**
@@ -121,7 +132,8 @@ function mail_logger_form_overview() {
  * hook_submit for mail_logger_form_overview
  *
  */
-function mail_logger_form_overview_submit($form_id, $form_values) {
+function mail_logger_form_overview_submit($form, &$form_state) {
+  $form_values = $form_state['values'];
   $_SESSION['mail_logger_overview_filter'] = $form_values['filter'];
 }
 /**
@@ -138,15 +150,16 @@ function mail_logger_overview() {
   $output = drupal_get_form('mail_logger_form_overview');
 
   $header = array(
+    array('data' => t('Date Sent'), 'field' => 'ml.date_sent', 'sort' => 'desc'),
     array('data' => t('Mailkey'), 'field' => 'ml.mailkey'),
+    array('data' => t('Language'), 'field' => 'ml.language'),
     array('data' => t('To'), 'field' => 'ml.to'),
     array('data' => t('From'), 'field' => 'ml.from'),
     array('data' => t('Subject'), 'field' => 'ml.subject'),
-    array('data' => t('Date Sent'), 'field' => 'ml.date_sent'),
   );
   $tablesort = tablesort_sql($header);
 
-  $sql = "SELECT ml.mlid, ml.mailkey, ml.to, ml.from, ml.subject, ml.date_sent FROM {mail_logger} ml";
+  $sql = "SELECT ml.mlid, ml.mailkey, ml.language, ml.to, ml.from, ml.subject, ml.date_sent FROM {mail_logger} ml";
   $type = $_SESSION['mail_logger_overview_filter'];
   
   if ($type != 'all') {
@@ -160,11 +173,12 @@ function mail_logger_overview() {
     $rows[] = array('data' =>
       array(
         // Cells
+        format_date($mail_logger->date_sent, 'small'),
         $mail_logger->mailkey,
+        $mail_logger->language,
         $mail_logger->to,
         $mail_logger->from,
-        l(truncate_utf8($mail_logger->subject, 56, TRUE, TRUE), 'admin/logs/mail-logger/mail/'. $mail_logger->mlid ),
-        format_date($mail_logger->date_sent, 'small'),
+        l(truncate_utf8($mail_logger->subject, 56, TRUE, TRUE), 'admin/reports/mail-logger/mail/'. $mail_logger->mlid ),
       ),
     );
   }

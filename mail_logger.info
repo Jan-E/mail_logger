@@ -2,3 +2,5 @@
 name = Mail Logger
 description = Logs all outgoing mail that passes through drupal_mail function
 package = Mail
+version = VERSION
+core = 6.x
