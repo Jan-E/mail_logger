@@ -169,6 +169,7 @@ function mail_logger_overview() {
     $result = pager_query($sql . $tablesort, 50);
   }
 
+  $rows = array();
   while ($mail_logger = db_fetch_object($result)) {
     $rows[] = array('data' =>
       array(
