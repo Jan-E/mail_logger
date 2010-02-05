@@ -4,58 +4,58 @@
 function mail_logger_schema() {
   $schema = array();
   $schema['mail_logger'] = array(
-    'description'           => t('Mail Logger table stores outgoing mails'),
+    'description'           => 'Mail Logger table stores outgoing mails',
     'fields'      => array(
       'mlid'          => array(
-        'description'   => t('Mail Logger entry ID'),
+        'description'   => 'Mail Logger entry ID',
         'type'          => 'serial',
         'not null'      => TRUE,
         'unsigned'      => TRUE,
       ),
       'mailkey'       => array(
-        'description'   => t('a key identifying the mail type'),
+        'description'   => 'a key identifying the mail type',
         'type'          => 'varchar',
         'length'        => 255,
         'not null'      => TRUE,
       ),
       'to'            => array(
-        'description'   => t('to whom this mail is going'),
+        'description'   => 'to whom this mail is going',
         'type'          => 'varchar',
         'length'        => 255,
         'not null'      => TRUE,
       ),
       'subject'       => array(
-        'description'   => t('Mail subject'),
+        'description'   => 'Mail subject',
         'type'          => 'varchar',
         'length'        => 255,
         'not null'      => TRUE,
       ),
       'body'          => array(
-        'description'   => t('Body text of the mail'),
+        'description'   => 'Body text of the mail',
         'type'          => 'text',
         'not null'      => TRUE,
         'size'          => 'big',
       ),
       'from'          => array(
-        'description'   => t('the FROM email address'),
+        'description'   => 'the FROM email address',
         'type'          => 'varchar',
         'length'        => 255,
         'not null'      => TRUE,
       ),
       'headers'       => array(
-        'description'   => t('Headers of the outgoing mail'),
+        'description'   => 'Headers of the outgoing mail',
         'type'          => 'text',
         'not null'      => TRUE,
         'size'          => 'big',
       ),
       'date_sent'     => array(
-        'description'   => t('Mail Logger entry ID'),
+        'description'   => 'Mail Logger entry ID',
         'type'          => 'int',
         'not null'      => TRUE,
         'unsigned'      => TRUE,
       ),
       'language'      => array(
-        'description'   => t('Language code'),
+        'description'   => 'Language code',
         'type'          => 'varchar',
         'length'        => 20,
         'not null'      => TRUE,
