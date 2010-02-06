@@ -15,20 +15,20 @@ function mail_logger_perm() {
 function mail_logger_menu() {
   $items = array();
   $items['admin/reports/mail-logger'] = array(
-    'title'             => t('Outgoing Mail log entries'),
-    'description'       => t('View Mails that have been sent from this site.'),
+    'title'             => 'Outgoing Mail log entries',
+    'description'       => 'View Mails that have been sent from this site.',
     'page callback'     => 'mail_logger_overview',
     'access arguments'  => array('access mail logger'),
     'type'              => MENU_NORMAL_ITEM,
-   );
+  );
   $items['admin/reports/mail-logger/mail/%'] = array(
-    'title'             => t('Outgoing Mail log entries'),
-    'description'       => t('View information about a single logged mail entry'),
+    'title'             => 'Outgoing Mail log entries',
+    'description'       => 'View information about a single logged mail entry',
     'page callback'     => 'mail_logger_read_mail',
     'page arguments'    => array(4),
     'access arguments'  => array('access mail logger'),
     'type'              => MENU_CALLBACK,
-   );
+  );
 
   return $items;
 }
@@ -40,10 +40,10 @@ function mail_logger_theme() {
   );
 }
 function mail_logger_read_mail($id) {
-  if(!isset($id) || !is_numeric($id)) {
-    return 'Invalid Mail Logger ID parameter'; 
+  if (!isset($id) || !is_numeric($id)) {
+    return 'Invalid Mail Logger ID parameter';
   }
-  else if ($result = db_query('SELECT * FROM {mail_logger} WHERE mlid = %d LIMIT 1', $id) ) {
+  elseif ($result = db_query_range('SELECT * FROM {mail_logger} WHERE mlid = %d', $id, 0, 1)) {
     drupal_add_css(drupal_get_path('module', 'mail_logger') .'/mail_logger.css');
     return theme('mail_logger_read_mail', db_fetch_object($result));
   }
@@ -66,7 +66,7 @@ function theme_mail_logger_read_mail($mail) {
 }
 
 /**
- * implementation of hook_mail_alter
+ * Implementation of hook_mail_alter().
  *
  * Purpose of this function is to log all outgoing mail
  */
@@ -86,10 +86,10 @@ function mail_logger_mail_alter(&$message) {
     time(),
     $message['language']->language,
   );
-  
+
   db_query("INSERT INTO {mail_logger} (
   `mlid` , `mailkey` , `to` , `subject` , `body` , `from` , `headers`, `date_sent`, `language`
-  ) VALUES ( 
+  ) VALUES (
   NULL, '%s', '%s', '%s', '%s', '%s', '%s', %d, '%s' )", $args);
 
 }
@@ -133,8 +133,7 @@ function mail_logger_form_overview() {
  *
  */
 function mail_logger_form_overview_submit($form, &$form_state) {
-  $form_values = $form_state['values'];
-  $_SESSION['mail_logger_overview_filter'] = $form_values['filter'];
+  $_SESSION['mail_logger_overview_filter'] = $form_state['values']['filter'];
 }
 /**
  * theme function for mail_logger_form_overview
@@ -161,7 +160,7 @@ function mail_logger_overview() {
 
   $sql = "SELECT ml.mlid, ml.mailkey, ml.language, ml.to, ml.from, ml.subject, ml.date_sent FROM {mail_logger} ml";
   $type = $_SESSION['mail_logger_overview_filter'];
-  
+
   if ($type != 'all') {
     $result = pager_query($sql ." WHERE ml.mailkey = '%s'". $tablesort, 50, 0, NULL, $type);
   }
