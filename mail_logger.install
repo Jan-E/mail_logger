@@ -1,6 +1,11 @@
 <?php
 // $Id$
 
+/**
+ * @file
+ * Install, update and uninstall functions for the mail_logger module.
+ */
+
 function mail_logger_schema() {
   $schema = array();
   $schema['mail_logger'] = array(
@@ -87,7 +92,7 @@ function mail_logger_uninstall() {
 function mail_logger_enable() {
   // Because modules can modify the outgoing mail, mail_logger must be executed last in order to capture 
   // the final mail parameters by setting the weight of mail_logger to something large.
-  $max_weight = db_result(db_query("SELECT max(weight) FROM {system} WHERE name != 'mail_logger'"));
+  $max_weight = db_result(db_query("SELECT max(weight) FROM {system} WHERE name <> 'mail_logger'"));
   db_query("UPDATE {system} SET weight = %d WHERE name = 'mail_logger'", $max_weight + 100);
 }
 
