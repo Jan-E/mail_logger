@@ -1,6 +1,6 @@
 <?php
 // $Id$
- 
+
 /**
  * implementation of hook_perm().
  *
@@ -32,6 +32,7 @@ function mail_logger_menu() {
 
   return $items;
 }
+
 function mail_logger_theme() {
   return array(
     'mail_logger_read_mail' => array(
@@ -39,16 +40,23 @@ function mail_logger_theme() {
     ),
   );
 }
+
+function mail_logger_load($id) {
+  $mail = db_fetch_object(db_query_range('SELECT * FROM {mail_logger} WHERE mlid = %d', $id, 0, 1));
+  $mail->headers = unserialize($mail->headers);
+  return $mail;
+}
+
 function mail_logger_read_mail($id) {
   if (!isset($id) || !is_numeric($id)) {
     return 'Invalid Mail Logger ID parameter';
   }
-  elseif ($result = db_query_range('SELECT * FROM {mail_logger} WHERE mlid = %d', $id, 0, 1)) {
+  elseif ($mail = mail_logger_load('SELECT * FROM {mail_logger} WHERE mlid = %d', $id, 0, 1)) {
     drupal_add_css(drupal_get_path('module', 'mail_logger') .'/mail_logger.css');
-    return theme('mail_logger_read_mail', db_fetch_object($result));
+    return theme('mail_logger_read_mail', $mail);
   }
   else {
-    return 'No Mail Logger record found with id '. $id;
+    return t('No Mail Logger record found with id: %id', array('%id' => $id));
   }
 }
 
@@ -76,6 +84,7 @@ function mail_logger_mail_alter(&$message) {
 //return ;
 //this line taken from mail.inc:drupal_mail()
   $message['body'] = is_array($message['body']) ? drupal_wrap_mail(implode("\n\n", $message['body'])) : drupal_wrap_mail($message['body']);
+  $message['date_sent'] = time();
   $args = array(
     $message['id'],
     $message['to'],
@@ -83,7 +92,7 @@ function mail_logger_mail_alter(&$message) {
     $message['body'],
     $message['from'],
     serialize($message['headers']),
-    time(),
+    $message['date_sent'],
     $message['language']->language,
   );
 
@@ -92,7 +101,10 @@ function mail_logger_mail_alter(&$message) {
   ) VALUES (
   NULL, '%s', '%s', '%s', '%s', '%s', '%s', %d, '%s' )", $args);
 
+  // Fire 'mail_logger' 'mail_sent' action.
+  module_invoke_all('mail_logger', 'mail_sent', $message, mail_logger_email_user($message['from']), mail_logger_email_user($message['to']));
 }
+
 /**
  * Returns types of mailkeys in mail_logger table
  *
@@ -191,4 +203,130 @@ function mail_logger_overview() {
   $output .= theme('pager', NULL, 50, 0);
 
   return $output;
+}
+
+/**
+ * Implementation of hook_hook_info().
+ */
+function mail_logger_hook_info() {
+  // This exposes the new 'mail_logger' trigger.
+  // @see http://drupal.org/node/375833.
+  return array(
+    'mail_logger' => array(
+      'mail_logger' => array(
+        'mail_sent' => array(
+          'runs when' => t('An e-mail has been sent and logged.'),
+        ),
+      ),
+    ),
+  );
+}
+
+/**
+ * Implementation of hook_mail_logger().
+ */
+function mail_logger_mail_logger($op, $message, $sender = NULL, $recipient = NULL) {
+  // We only act on the 'mail_sent' action/rule.
+  if (!in_array($op, array('mail_sent'))) {
+    return;
+  }
+
+  // First we trigger the action.
+  $aids = _trigger_get_hook_aids('mail_logger', $op);
+  $context = array(
+    'hook' => 'mail_logger',
+    'op' => $op,
+    'message' => $message,
+    'sender' => $sender,
+    'recipient' => $recipient,
+  );
+  actions_do(array_keys($aids), $message, $context);
+
+  // If the Rules module has been installed, then also trigger the defined rule.
+  if (module_exists('rules')) {
+    global $user;
+    rules_invoke_event('mail_logger_mail_sent', $message, $sender, $recipient, $user);
+  }
+}
+
+/**
+ * Implementation of hook_action_info_alter().
+ */
+function mail_logger_action_info_alter(&$info) {
+  foreach ($info as $type => $data) {
+    // Allow user & system actions, but don't want an infinite loop with
+    // system sent emails.
+    if ((stripos($type, "user_") === 0 || strpos($type, "system_") === 0) && ($type != 'system_send_email_action')) {
+      if (isset($info[$type]['hooks']['mail_logger'])) {
+        array_merge($info[$type]['hooks']['mail_logger'], array('mail_sent'));
+      }
+      else {
+        $info[$type]['hooks']['mail_logger'] = array('mail_sent');
+      }
+    }
+  }
+}
+
+/**
+ * Load a user associated with a specific e-mail.
+ */
+function mail_logger_email_user($email) {
+  if ($email = mail_logger_parse_email($email)) {
+    return user_load(array('mail' => $email));
+  }
+}
+
+/**
+ * Return just the e-mail part of an address, which might be something like
+ *   "John Doe <john.doe@example.com>".
+ */
+function mail_logger_parse_email($email) {
+  return preg_match('/^(?:.*?<)?(.*?)(?:>|$)/', $email, $matches) ? $matches[1] : '';
+}
+
+/**
+ * Implementation of hook_token_list().
+ */
+function mail_logger_token_list($type = 'mail') {
+  if ($type == 'mail') {
+    $tokens['mail']['mlid'] = t('The unique mail ID.');
+    $tokens['mail']['mailkey'] = t('The mail key.');
+    $tokens['mail']['to'] = t("The mail recipient's e-mail address(es) as entered in the mail.");
+    $tokens['mail']['to-raw'] = t("The unfiltered mail recipient's e-mail address(es) as entered in the mail. WARNING - raw user input.");
+    $tokens['mail']['subject'] = t("The mail subject.");
+    $tokens['mail']['subject-raw'] = t("The unfiltered mail subject. WARNING - raw user input.");
+    $tokens['mail']['body'] = t("The mail message body.");
+    $tokens['mail']['body-raw'] = t("The unfiltered mail message body. WARNING - raw user input.");
+    $tokens['mail']['from'] = t("The mail sender's e-mail address as entered in the mail.");
+    $tokens['mail']['from-raw'] = t("The unfiltered mail sender's e-mail address as entered in the mail. WARNING - raw user input.");
+    $tokens['mail']['date'] = t("The date the mail was sent.");
+    $tokens['mail']['language'] = t("The language of the mail.");
+  }
+
+  return $tokens;
+}
+
+/**
+ * Implementation of hook_token_values().
+ */
+function mail_logger_token_values($type, $object = NULL) {
+  $values = array();
+  switch ($type) {
+    case 'mail':
+      $object = (array) $object;
+      $values['mlid'] = $object['id'];
+      $values['mailkey'] = check_plain($object['mailkey']);
+      $values['to'] = check_plain($object['to']);
+      $values['to-raw'] = $object['to'];
+      $values['subject'] = check_plain($object['subject']);
+      $values['subject-raw'] = $object['subject'];
+      $values['body'] = check_markup($object['body']);
+      $values['body-raw'] = $object['body'];
+      $values['from'] = check_plain($object['from']);
+      $values['from-raw'] = $object['from'];
+      $values['date'] = format_date($object['date_sent']);
+      $values['language'] = is_object($object['language']) ? $object['language']->language : $object['language'];
+      break;
+  }
+  return $values;
 }
