@@ -51,7 +51,7 @@ function mail_logger_read_mail($id) {
   if (!isset($id) || !is_numeric($id)) {
     return 'Invalid Mail Logger ID parameter';
   }
-  elseif ($mail = mail_logger_load('SELECT * FROM {mail_logger} WHERE mlid = %d', $id, 0, 1)) {
+  elseif ($mail = mail_logger_load($id)) {
     drupal_add_css(drupal_get_path('module', 'mail_logger') .'/mail_logger.css');
     return theme('mail_logger_read_mail', $mail);
   }
