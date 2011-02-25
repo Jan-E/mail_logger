@@ -1,4 +1,3 @@
-; $Id$
 name = Mail Logger
 description = Logs all outgoing mail that passes through the drupal_mail function.
 package = Mail
