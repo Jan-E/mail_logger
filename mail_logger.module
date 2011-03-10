@@ -86,7 +86,18 @@ function mail_logger_mail_alter(&$message) {
 //this line taken from mail.inc:drupal_mail()
   $message['body'] = is_array($message['body']) ? drupal_wrap_mail(implode("\n\n", $message['body'])) : drupal_wrap_mail($message['body']);
   $message['date_sent'] = time();
+  $new_mlid = '';
+  switch ($GLOBALS['db_type']) {
+    case 'mysql':
+    case 'mysqli':
+      $new_mlid = NULL;
+      break;
+    case 'pgsql':
+      $new_mlid = db_result(db_query("SELECT nextval('{mail_logger_mlid_seq}')"));
+      break;
+  }
   $args = array(
+    $new_mlid,
     $message['id'],
     $message['to'],
     $message['subject'],
@@ -100,7 +111,7 @@ function mail_logger_mail_alter(&$message) {
   db_query("INSERT INTO {mail_logger} (
   `mlid` , `mailkey` , `to` , `subject` , `body` , `from` , `headers`, `date_sent`, `language`
   ) VALUES (
-  NULL, '%s', '%s', '%s', '%s', '%s', '%s', %d, '%s' )", $args);
+  %d, '%s', '%s', '%s', '%s', '%s', '%s', %d, '%s' )", $args);
 
   // Fire 'mail_logger' 'mail_sent' action.
   module_invoke_all('mail_logger', 'mail_sent', $message, mail_logger_email_user($message['from']), mail_logger_email_user($message['to']));
