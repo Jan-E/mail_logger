@@ -1,8 +1,7 @@
 <?php
 
 /**
- * implementation of hook_perm().
- *
+ * Implementation of hook_perm().
  */
 function mail_logger_perm() {
   return array('access mail logger');
@@ -32,6 +31,9 @@ function mail_logger_menu() {
   return $items;
 }
 
+/**
+ * Implementation of hook_theme().
+ */
 function mail_logger_theme() {
   return array(
     'mail_logger_read_mail' => array(
@@ -141,14 +143,12 @@ function mail_logger_form_overview() {
 
 /**
  * hook_submit for mail_logger_form_overview
- *
  */
 function mail_logger_form_overview_submit($form, &$form_state) {
   $_SESSION['mail_logger_overview_filter'] = $form_state['values']['filter'];
 }
 /**
  * theme function for mail_logger_form_overview
- *
  */
 function theme_mail_logger_form_overview($form) {
   return '<div class="container-inline">'. drupal_render($form) .'</div>';
@@ -300,9 +300,8 @@ function mail_logger_token_list($type = 'mail') {
     $tokens['mail']['from-raw'] = t("The unfiltered mail sender's e-mail address as entered in the mail. WARNING - raw user input.");
     $tokens['mail']['date'] = t("The date the mail was sent.");
     $tokens['mail']['language'] = t("The language of the mail.");
+    return $tokens;
   }
-
-  return $tokens;
 }
 
 /**
