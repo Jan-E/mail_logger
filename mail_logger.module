@@ -66,10 +66,10 @@ function theme_mail_logger_read_mail($mail) {
   $output .= '<div class="mail_logger_wrapper">';
   $output .= '<div class="mail_type_label">Mail Type: </div><div class="mail_type_data">'. $mail->mailkey .'</div>';
   $output .= '<div class="date_sent_label">Date Sent: </div><div class="date_sent_data">'. format_date($mail->date_sent, 'small') .'</div>';
-  $output .= '<div class="mail_from_label">From: </div><div class="mail_from_data">'. $mail->from .'</div>';
-  $output .= '<div class="mail_to_label">To: </div><div class="mail_to_data">'. $mail->to .'</div>';
-  $output .= '<div class="mail_subject_label">Subject: </div><div class="mail_subject_data">'. $mail->subject .'</div>';
-  $output .= '<div class="mail_body_label">Body: </div><div class="mail_body_data">'. nl2br($mail->body) .'</div>';
+  $output .= '<div class="mail_from_label">From: </div><div class="mail_from_data">'. check_plain($mail->from) .'</div>';
+  $output .= '<div class="mail_to_label">To: </div><div class="mail_to_data">'. check_plain($mail->to) .'</div>';
+  $output .= '<div class="mail_subject_label">Subject: </div><div class="mail_subject_data">'. check_plain($mail->subject) .'</div>';
+  $output .= '<div class="mail_body_label">Body: </div><div class="mail_body_data">'. nl2br(check_plain($mail->body)) .'</div>';
   $output .= '</div>';
   return $output;
 }
