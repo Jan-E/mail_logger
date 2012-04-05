@@ -25,7 +25,7 @@ function mail_logger_schema() {
         'length'        => 255,
         'not null'      => TRUE,
       ),
-      'to'            => array(
+      'mailto'        => array(
         'description'   => 'to whom this mail is going',
         'type'          => 'varchar',
         'length'        => 255,
@@ -43,7 +43,7 @@ function mail_logger_schema() {
         'not null'      => TRUE,
         'size'          => 'big',
       ),
-      'from'          => array(
+      'mailfrom'      => array(
         'description'   => 'the FROM email address',
         'type'          => 'varchar',
         'length'        => 255,
@@ -68,13 +68,13 @@ function mail_logger_schema() {
         'not null'      => TRUE,
       ),
     ),
-    'primary key'     => array('`mlid`'),
+    'primary key'     => array('mlid'),
     'indexes'         => array(
-      '`to`'              => array('`to`'),
-      '`from`'            => array('`from`'),
-      '`subject`'         => array(array('`subject`', 20)),
-      '`date_sent`'       => array('`date_sent`'),
-      '`language`'        => array('`language`'),
+      'mailto'          => array('mailto'),
+      'mailfrom'        => array('mailfrom'),
+      'subject'         => array(array('subject', 20)),
+      'date_sent'       => array('date_sent'),
+      'language'        => array('language'),
     ),
   );
 
@@ -85,14 +85,12 @@ function mail_logger_schema() {
  * Implementation of hook_install().
  */
 function mail_logger_install() {
-  drupal_install_schema('mail_logger');
 }
 
 /**
  * Implementation of hook_uninstall().
  */
 function mail_logger_uninstall() {
-  drupal_uninstall_schema('mail_logger');
 }
 
 /**
@@ -101,24 +99,6 @@ function mail_logger_uninstall() {
 function mail_logger_enable() {
   // Because modules can modify the outgoing mail, mail_logger must be executed last in order to capture
   // the final mail parameters by setting the weight of mail_logger to something large.
-  $max_weight = db_result(db_query("SELECT max(weight) FROM {system} WHERE name <> 'mail_logger'"));
-  db_query("UPDATE {system} SET weight = %d WHERE name = 'mail_logger'", $max_weight + 100);
-}
-
-/**
- * Add language field to the mail_logger table to support upgrading from Drupal 5.
- */
-function mail_logger_update_6000() {
-  $ret = array();
-  if (!db_column_exists('mail_logger', 'language')) {
-    db_add_field($ret, 'mail_logger', 'language', array(
-        'description' => t('Language code'),
-        'type'        => 'varchar',
-        'length'      => 20,
-        'not null'    => TRUE,
-      )
-    );
-    db_add_index($ret, 'mail_logger', '`language`', array('`language`'));
-  }
-  return $ret;
+  $max_weight = db_query("SELECT max(weight) FROM {system} WHERE name <> 'mail_logger'")->fetchField();
+  db_query("UPDATE {system} SET weight = :max_weight WHERE name = 'mail_logger'", array(':max_weight' => $max_weight + 100));
 }

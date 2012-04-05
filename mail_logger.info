@@ -1,5 +1,7 @@
 name = Mail Logger
 description = Logs all outgoing mail that passes through the drupal_mail function.
 package = Mail
-core = 6.x
+files[] = mail_logger.module
+files[] = mail_logger.test
+core = 7.x
 dependencies[] = trigger
