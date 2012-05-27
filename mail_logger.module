@@ -184,7 +184,9 @@ function theme_mail_logger_form_overview($form) {
  * Menu callback; displays a listing of log mails.
  */
 function mail_logger_overview() {
-  $output = drupal_render(drupal_get_form('mail_logger_form_overview'));
+  $form = drupal_get_form('mail_logger_form_overview');
+  $output = drupal_render($form);
+
   $header = array(
     array('data' => t('Date Sent'), 'field' => 'date_sent', 'sort' => 'desc'),
     array('data' => t('Mailkey'), 'field' => 'mailkey'),
