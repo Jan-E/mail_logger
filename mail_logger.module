@@ -224,9 +224,9 @@ function mail_logger_overview() {
         format_date($mail_logger->date_sent, 'small'),
         $mail_logger->mailkey,
         $mail_logger->language,
-        $mail_logger->to,
-        $mail_logger->from,
-        l(truncate_utf8($mail_logger->subject, 56, TRUE, TRUE), 'admin/reports/mail-logger/mail/' . $mail_logger->mlid ),
+        $mail_logger->mailto,
+        $mail_logger->mailfrom,
+        l(truncate_utf8($mail_logger->subject, 56, TRUE, TRUE), 'admin/reports/mail-logger/mail/' . $mail_logger->mlid),
       ),
     );
   }
