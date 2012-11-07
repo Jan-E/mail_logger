@@ -55,7 +55,7 @@ function mail_logger_load($id) {
     ->condition('mlid', $id)
     ->execute()
     ->fetchObject();
-  if ($mail) {  
+  if ($mail) {
     $mail->headers = unserialize($mail->headers);
     return $mail;
   }
@@ -97,36 +97,25 @@ function theme_mail_logger_read_mail($mail) {
  * Purpose of this function is to log all outgoing mail
  */
 function mail_logger_mail_alter(&$message) {
-  $message['body'] = is_array($message['body']) ? drupal_wrap_mail(implode("\n\n", $message['body'])) : drupal_wrap_mail($message['body']);
-  $message['date_sent'] = REQUEST_TIME;
-  /*
-  $new_mlid = '';
-  switch ($GLOBALS['db_type']) {
-    case 'mysql':
-    case 'mysqli':
-      $new_mlid = NULL;
-      break;
-    case 'pgsql':
-      $new_mlid = db_query("SELECT nextval('{mail_logger_mlid_seq}')")->fetchField();
-      break;
+  if (!empty($message['send'])) {
+    $system = drupal_mail_system($message['module'], $message['key']);
+    $logger = $system->format($message);
+    $logger['date_sent'] = REQUEST_TIME;
+    db_insert('mail_logger', array())
+      ->fields(array(
+        'mailkey'   => $logger['id'],
+        'mailto'    => $logger['to'],
+        'subject'   => $logger['subject'],
+        'body'      => $logger['body'],
+        'mailfrom'  => $logger['from'],
+        'headers'   => serialize($logger['headers']),
+        'date_sent' => $logger['date_sent'],
+        'language'  => $logger['language']->language,
+      ))
+      ->execute();
+    // Fire 'mail_logger' 'mail_sent' action.
+    module_invoke_all('mail_logger', 'mail_sent', $message, user_load_by_mail($message['from']), user_load_by_mail($message['to']));
   }
-  */
-  db_insert('mail_logger', array())
-    ->fields(array(
-      //'mlid'      => $new_mlid,
-      'mailkey'   => $message['id'],
-      'mailto'    => $message['to'],
-      'subject'   => $message['subject'],
-      'body'      => $message['body'],
-      'mailfrom'  => $message['from'],
-      'headers'   => serialize($message['headers']),
-      'date_sent' => $message['date_sent'],
-      'language'  => $message['language']->language,
-    ))
-    ->execute();
-
-  // Fire 'mail_logger' 'mail_sent' action.
-  module_invoke_all('mail_logger', 'mail_sent', $message, user_load_by_mail($message['from']), user_load_by_mail($message['to']));
 }
 
 /**
@@ -208,14 +197,14 @@ function mail_logger_overview() {
       'subject',
       'date_sent'
     ));
-    
+
   $type = $_SESSION['mail_logger_overview_filter'];
 
   if ($type != 'all') {
     $query->where('mailkey', $type);
   }
   $result = $query->execute();
-  
+
   $rows = array();
   foreach ($result as $mail_logger) {
     $rows[] = array('data' =>
