@@ -201,7 +201,7 @@ function mail_logger_overview() {
   $type = $_SESSION['mail_logger_overview_filter'];
 
   if ($type != 'all') {
-    $query->where('mailkey', $type);
+    $query->condition('mailkey', $type);
   }
   $result = $query->execute();
 
