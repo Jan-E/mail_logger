@@ -259,16 +259,18 @@ function mail_logger_mail_logger($op, $message, $sender = NULL, $recipient = NUL
     return;
   }
 
-  // First we trigger the action.
-  $aids = trigger_get_assigned_actions('mail_logger');
-  $context = array(
-    'hook' => 'mail_logger',
-    'op' => $op,
-    'message' => $message,
-    'sender' => $sender,
-    'recipient' => $recipient,
-  );
-  actions_do(array_keys($aids), $message, $context);
+  if (module_exists('trigger')) {
+    // First we trigger the action.
+    $aids = trigger_get_assigned_actions('mail_logger');
+    $context = array(
+      'hook' => 'mail_logger',
+      'op' => $op,
+      'message' => $message,
+      'sender' => $sender,
+      'recipient' => $recipient,
+    );
+    actions_do(array_keys($aids), $message, $context);
+  }
 
   // If the Rules module has been installed, then also trigger the defined rule.
   if (module_exists('rules')) {
