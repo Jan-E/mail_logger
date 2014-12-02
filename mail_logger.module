@@ -22,13 +22,19 @@ function mail_logger_permission() {
 function mail_logger_menu() {
   $items = array();
   $items['admin/reports/mail-logger'] = array(
-    'title'             => 'Outgoing Mail log entries',
+    'title'             => 'Outgoing Mail log',
     'description'       => 'View Mails that have been sent from this site.',
     'page callback'     => 'mail_logger_overview',
     'access arguments'  => array('access mail logger'),
-    'type'              => MENU_NORMAL_ITEM,
     'file'              => 'mail_logger.pages.inc',
   );
+
+  $items['admin/reports/mail-logger/logs'] = array(
+    'title' => 'Entries',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -10
+  );
+
   $items['admin/reports/mail-logger/mail/%'] = array(
     'title'             => 'Outgoing Mail log entries',
     'description'       => 'View information about a single logged mail entry',
@@ -37,6 +43,15 @@ function mail_logger_menu() {
     'access arguments'  => array('access mail logger'),
     'type'              => MENU_CALLBACK,
     'file'              => 'mail_logger.pages.inc',
+  );
+
+  $items['admin/reports/mail-logger/settings'] = array(
+    'title' => 'Settings',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('mail_logger_admin_settings_form'),
+    'access arguments' => array('administer modules'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'mail_logger.admin.inc',
   );
 
   return $items;
@@ -242,5 +257,17 @@ function mail_logger_load($id) {
   }
   else {
     return FALSE;
+  }
+}
+
+/**
+ * Implements hook_cron().
+ */
+function mail_logger_cron() {
+  $log_maximum_age = variable_get('mail_logger_log_maximum_age', 0);
+  if ($log_maximum_age > 0) {
+    db_delete('mail_logger')
+      ->condition('date_sent', REQUEST_TIME - $log_maximum_age, '<')
+      ->execute();
   }
 }
