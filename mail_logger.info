@@ -3,4 +3,6 @@ description = Logs all outgoing mail that passes through the drupal_mail functio
 package = Mail
 files[] = mail_logger.module
 files[] = mail_logger.test
+files[] = views/mail_logger_handler_field_mail.inc
+files[] = views/mail_logger_handler_field_mail_logger_entry.inc
 core = 7.x
