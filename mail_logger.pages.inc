@@ -47,9 +47,9 @@ function mail_logger_overview() {
   }
 
   if(!empty($_SESSION['mail_logger_overview_to_date'])){
-      $to_time = strtotime($_SESSION['mail_logger_overview_to_date']['year'].'-'.$_SESSION['mail_logger_overview_to_date']['month'].'-'.$_SESSION['mail_logger_overview_to_date']['day']);
+      $to_time = strtotime($_SESSION['mail_logger_overview_to_date']['year'].'-'.$_SESSION['mail_logger_overview_to_date']['month'].'-'.$_SESSION['mail_logger_overview_to_date']['day'] . 't23:59:59');
   }else{
-      $to_time = strtotime('+1 day');
+      $to_time = strtotime('now') + 86400;
   }
   $query->condition('date_sent', $from_time, '>=');
   $query->condition('date_sent', $to_time, '<=');
@@ -134,7 +134,9 @@ function mail_logger_form_overview() {
     ->execute()
     ->fetchField();
 
+  $timezone = new DateTimeZone(date_default_timezone_get());
   $default_from_date = $first_mail ? DateTime::createFromFormat('U', $first_mail) : DateTime::createFromFormat('U', strtotime('-1 month'));
+  $default_from_date->setTimezone($timezone);
   $default_from_date = array('year' => $default_from_date->format('Y'), 'month' => $default_from_date->format('n'), 'day' => $default_from_date->format('j'));
 
   $is_filtering = $_SESSION['mail_logger_overview_filter'] != 'all' || !empty($_SESSION['mail_logger_overview_from_date']) || !empty($_SESSION['mail_logger_overview_to_date']) || !empty($_SESSION['mail_logger_overview_search_field']) || !empty($_SESSION['mail_logger_overview_search_value']);
@@ -152,6 +154,7 @@ function mail_logger_form_overview() {
   );
 
   $default_to_date = DateTime::createFromFormat('U', time() + 86400);
+  $default_to_date->setTimezone($timezone);
   $default_to_date = array('year' => $default_to_date->format('Y'), 'month' => $default_to_date->format('n'), 'day' => $default_to_date->format('j'));
 
   $form['filter_logs']['to_date'] = array(
