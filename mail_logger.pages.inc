@@ -41,24 +41,30 @@ function mail_logger_overview() {
     $query->condition('mailkey', $type);
   }
 
-  if(!empty($_SESSION['mail_logger_overview_from_date'])){
-      $from_time = strtotime($_SESSION['mail_logger_overview_from_date']['year'].'-'.$_SESSION['mail_logger_overview_from_date']['month'].'-'.$_SESSION['mail_logger_overview_from_date']['day']);
-  }else{
+  if (!empty($_SESSION['mail_logger_overview_from_date'])) {
+      $from_time = strtotime($_SESSION['mail_logger_overview_from_date']['year']
+        . '-' . $_SESSION['mail_logger_overview_from_date']['month']
+        . '-' . $_SESSION['mail_logger_overview_from_date']['day']);
+  }
+  else{
       $from_time = strtotime('-1 month');
   }
 
-  if(!empty($_SESSION['mail_logger_overview_to_date'])){
-      $to_time = strtotime($_SESSION['mail_logger_overview_to_date']['year'].'-'.$_SESSION['mail_logger_overview_to_date']['month'].'-'.$_SESSION['mail_logger_overview_to_date']['day'] . 't23:59:59');
-  }else{
+  if (!empty($_SESSION['mail_logger_overview_to_date'])) {
+      $to_time = strtotime($_SESSION['mail_logger_overview_to_date']['year']
+        . '-' . $_SESSION['mail_logger_overview_to_date']['month']
+        . '-' . $_SESSION['mail_logger_overview_to_date']['day'] . 't23:59:59');
+  }
+  else{
       $to_time = strtotime('now') + 86400;
   }
   $query->condition('date_sent', $from_time, '>=');
   $query->condition('date_sent', $to_time, '<=');
 
-  if(!empty($_SESSION['mail_logger_overview_search_field']) && !empty($_SESSION['mail_logger_overview_search_value'])){
+  if (!empty($_SESSION['mail_logger_overview_search_field']) && !empty($_SESSION['mail_logger_overview_search_value'])) {
       $search_field = $_SESSION['mail_logger_overview_search_field'];
       $search_value = $_SESSION['mail_logger_overview_search_value'];
-      $query->condition($search_field, '%'.$search_value.'%', 'LIKE');
+      $query->condition($search_field, '%' . $search_value . '%', 'LIKE');
   }
 
   $result = $query->execute();
@@ -145,7 +151,7 @@ function mail_logger_form_overview() {
   $form['filter_logs'] = array(
     '#type' => 'fieldset',
     '#title' => 'Filter Mail Log',
-    '#collapsible' => true,
+    '#collapsible' => TRUE,
     '#collapsed' => !$is_filtering,
   );
   $form['filter_logs']['from_date'] = array(
@@ -166,9 +172,17 @@ function mail_logger_form_overview() {
 
   $form['filter_logs']['search_field'] = array(
     '#type' => 'select',
-    '#options' => array(''=>'-- Select a field --', 'mailto'=>'To Email Address', 'mailfrom'=>'From Email Address', 'subject'=>'Subject', 'body'=>'Body', 'language'=>'Language'),
+    '#options' => array(
+      '' => '-- Select a field --',
+      'mailto' => 'To Email Address',
+      'mailfrom' => 'From Email Address',
+      'subject' => 'Subject',
+      'body' => 'Body',
+      'language' => 'Language',
+      ),
     '#title' => t('Field'),
-    '#default_value' => (!empty($_SESSION['mail_logger_overview_search_field'])) ? $_SESSION['mail_logger_overview_search_field'] : ''
+    '#default_value' => (!empty($_SESSION['mail_logger_overview_search_field'])) ?
+      $_SESSION['mail_logger_overview_search_field'] : ''
   );
   $form['filter_logs']['search_value'] = array(
     '#type' => 'textfield',
@@ -219,7 +233,7 @@ function mail_logger_form_overview_validate($form, &$form_state) {
   if (!empty($form_state['values']['search_value']) && empty($form_state['values']['search_field'])) {
     form_set_error('search_field', 'Please choose a search field.');
   }
-  else if (empty($form_state['values']['search_value']) && !empty($form_state['values']['search_field'])) {
+  elseif (empty($form_state['values']['search_value']) && !empty($form_state['values']['search_field'])) {
     form_set_error('search_value', 'Please enter a search text.');
   }
 }
@@ -234,7 +248,8 @@ function mail_logger_form_overview_submit($form, &$form_state) {
     $_SESSION['mail_logger_overview_to_date'] = $form_state['values']['to_date'];
     $_SESSION['mail_logger_overview_search_field'] = $form_state['values']['search_field'];
     $_SESSION['mail_logger_overview_search_value'] = $form_state['values']['search_value'];
-  } else if (in_array('reset', $form_state['triggering_element']['#attributes'])) {
+  }
+  elseif (in_array('reset', $form_state['triggering_element']['#attributes'])) {
     $_SESSION['mail_logger_overview_filter'] = 'all';
     $_SESSION['mail_logger_overview_from_date'] = '';
     $_SESSION['mail_logger_overview_to_date'] = '';
