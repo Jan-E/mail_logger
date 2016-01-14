@@ -96,6 +96,9 @@ function mail_logger_mail_alter(&$message) {
     } else {
       $language = $logger['language'];
     }
+    if (empty($logger['to'])) {
+      $logger['to'] = t('* empty *');
+    }
     db_insert('mail_logger', array())
       ->fields(array(
         'mailkey'   => $logger['id'],
