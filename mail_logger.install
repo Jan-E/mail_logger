@@ -75,7 +75,7 @@ function mail_logger_schema() {
     ),
     'primary key'     => array('mlid'),
     'indexes'         => array(
-      'mailto'          => array('mailto'),
+      'mailto'          => array(array('mailto', 200)),
       'mailfrom'        => array('mailfrom'),
       'subject'         => array(array('subject', 20)),
       'date_sent'       => array('date_sent'),
@@ -120,23 +120,31 @@ function mail_logger_update_7000() {
       'type' => 'varchar',
       'length' => 2047,
        'not null' => TRUE,
-      )
+      ),
+    array('mailto' => array(array('mailto', 200)))
     );
+  return t('The Mail_logger "mailto" column has been expanded.');
 }
 
 /**
  * Add 'ipaddr' column.
  */
 function mail_logger_update_7001() {
-  db_add_field('mail_logger', 'ipaddr',
-    array(
-        'description'   => 'IP Address of User',
-        'type'          => 'varchar',
-        'length'        => 45,
-        'not null'      => TRUE,
-      ),
-    array(
-      'indexes' => array('ipaddr' => array('ipaddr')),
-      )
-    );
+  if (db_field_exists('mail_logger', 'ipaddr')) {
+    return t('mail_logger_update_7001 was unneccessary.');
+  }
+  else {
+    db_add_field('mail_logger', 'ipaddr',
+      array(
+          'description' => 'IP Address of User',
+          'type' => 'varchar',
+          'length' => 45,
+          'not null' => TRUE,
+        ),
+      array(
+        'indexes' => array('ipaddr' => array('ipaddr')),
+        )
+      );
+    return t('The Mail_logger "ipaddr" field was added.');
+  }
 }
