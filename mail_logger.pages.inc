@@ -73,6 +73,7 @@ function mail_logger_overview() {
   $result = $query->execute();
 
   foreach ($result as $mail_logger) {
+    $subject = (empty($mail_logger->subject) ? t('Missing subject') : $mail_logger->subject);
     $table['rows'][] = array('data' =>
       array(
         // Cells
@@ -81,7 +82,7 @@ function mail_logger_overview() {
         $mail_logger->language,
         $mail_logger->mailto,
         $mail_logger->mailfrom,
-        l(truncate_utf8($mail_logger->subject, 56, TRUE, TRUE), 'admin/reports/mail-logger/mail/' . $mail_logger->mlid),
+        l(truncate_utf8($subject, 56, TRUE, TRUE), 'admin/reports/mail-logger/mail/' . $mail_logger->mlid),
         $mail_logger->ipaddr,
         ),
       );
