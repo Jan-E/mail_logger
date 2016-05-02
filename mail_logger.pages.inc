@@ -222,11 +222,11 @@ function mail_logger_form_overview_validate($form, &$form_state) {
   }
 
   $from_date = strtotime($form_state['values']['from_date']['year']
-    . str_pad($form_state['values']['from_date']['month'], 2, '0', STR_PAD_LEFT)
-    . str_pad($form_state['values']['from_date']['day'], 2, '0', STR_PAD_LEFT));
+    . '-' . str_pad($form_state['values']['from_date']['month'], 2, '0', STR_PAD_LEFT)
+    . '-' . str_pad($form_state['values']['from_date']['day'], 2, '0', STR_PAD_LEFT));
   $to_date = strtotime($form_state['values']['to_date']['year']
-    . str_pad($form_state['values']['to_date']['month'], 2, '0', STR_PAD_LEFT)
-    . str_pad($form_state['values']['to_date']['day'], 2, '0', STR_PAD_LEFT));
+    . '-' . str_pad($form_state['values']['to_date']['month'], 2, '0', STR_PAD_LEFT)
+    . '-' . str_pad($form_state['values']['to_date']['day'], 2, '0', STR_PAD_LEFT));
   if ($to_date < $from_date) {
     form_set_error('to_date', 'The To Date must be after the From Date.');
   }
