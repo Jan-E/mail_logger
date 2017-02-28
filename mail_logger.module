@@ -99,19 +99,29 @@ function mail_logger_mail_alter(&$message) {
 
     $logger['to'] = (empty($logger['to']) ? t('* empty *') : $logger['to']);
 
-    db_insert('mail_logger', array())
-      ->fields(array(
-        'mailkey'     => $logger['id'],
-        'mailto'      => $logger['to'],
-        'subject'     => $logger['subject'],
-        'body'        => $logger['body'],
-        'mailfrom'    => $logger['from'],
-        'headers'     => serialize($logger['headers']),
-        'date_sent'   => $logger['date_sent'],
-        'language'    => $language,
-        'ipaddr'      => $_SERVER['REMOTE_ADDR'],
-        'mail_system' => $mail_system,
-      ))
+    $record = array(
+      'mailkey'     => $logger['id'],
+      'mailto'      => $logger['to'],
+      'subject'     => $logger['subject'],
+      'body'        => $logger['body'],
+      'mailfrom'    => $logger['from'],
+      'headers'     => serialize($logger['headers']),
+      'date_sent'   => $logger['date_sent'],
+      'language'    => $language,
+      'ipaddr'      => $_SERVER['REMOTE_ADDR'],
+      'mail_system' => $mail_system,
+      );
+
+    $db_specs = drupal_get_schema('mail_logger');
+
+    foreach ($record as $field_name => $value) {
+      if (isset($db_specs[$field_name]['length'])) {
+        $record[$field_name] = substr($value, $db_specs[$field_name]['length']);
+      }
+    }
+
+    db_insert('mail_logger')
+      ->fields($record)
       ->execute();
 
     // Fire 'mail_logger' 'mail_sent' action.
