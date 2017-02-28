@@ -9,6 +9,10 @@
   margin-right: 3px;
 }
 
+#mail-logger-log td {
+  vertical-align: top;
+}
+
 .mail_ipaddr_label,
 .mail_subject_label,
 .mail_to_label,

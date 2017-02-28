@@ -74,13 +74,21 @@ function mail_logger_overview() {
 
   foreach ($result as $mail_logger) {
     $subject = (empty($mail_logger->subject) ? t('Missing subject') : $mail_logger->subject);
+    $mailto = $mail_logger->mailto;
+    if (strpos($mailto, ';') !== FALSE) {
+      $list = explode(';', $mailto);
+    }
+    else {
+      $list = explode(',', $mailto);
+    }
+
     $table['rows'][] = array('data' =>
       array(
         // Cells
         format_date($mail_logger->date_sent, $date_format),
         $mail_logger->mailkey,
         $mail_logger->language,
-        $mail_logger->mailto,
+        implode('<br />', $list),
         $mail_logger->mailfrom,
         l(truncate_utf8($subject, 56, TRUE, TRUE), 'admin/reports/mail-logger/mail/' . $mail_logger->mlid),
         $mail_logger->ipaddr,
