@@ -97,7 +97,12 @@ function mail_logger_mail_alter(&$message) {
       $language = (is_object($logger['language']) ? $logger['language']->language : $logger['language']);
     }
 
-    $logger['to'] = (empty($logger['to']) ? t('* empty *') : $logger['to']);
+    // Process headers with mime_header_decode() in case they are encoded.
+    $logger['to'] = mime_header_decode(empty($logger['to']) ? t('* empty *') : $logger['to']);
+    $logger['from'] = mime_header_decode($logger['from']);
+    foreach ($logger['headers'] as $key => $val) {
+      $logger['headers'][$key] = mime_header_decode($val);
+    }
 
     $record = array(
       'mailkey'     => $logger['id'],
