@@ -32,7 +32,7 @@ function mail_logger_permission() {
 function mail_logger_menu() {
   $items = array();
   $items['admin/reports/mail-logger'] = array(
-    'title'             => 'Outgoing Mail log',
+    'title'             => 'Outgoing Mail Log',
     'description'       => 'View Mails that have been sent from this site.',
     'page callback'     => 'mail_logger_overview',
     'access arguments'  => array('access mail logger'),
@@ -46,7 +46,7 @@ function mail_logger_menu() {
   );
 
   $items['admin/reports/mail-logger/mail/%'] = array(
-    'title'             => 'Outgoing Mail log entries',
+    'title'             => 'Outgoing Mail Log Entry',
     'description'       => 'View information about a single logged mail entry',
     'page callback'     => 'mail_logger_read_mail',
     'page arguments'    => array(4),

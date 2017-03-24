@@ -13,6 +13,9 @@ function mail_logger_overview() {
   $output = drupal_render($form);
   $date_format = variable_get('mail_logger_log_date_format', 'short');
 
+  // Fix the annoying lower casing by the menu module.
+  drupal_set_title(t('Outgoing Mail Log'));
+
   $table = array(
     'header' => array(
       array('data' => t('Date Sent'), 'field' => 'date_sent', 'sort' => 'desc'),
