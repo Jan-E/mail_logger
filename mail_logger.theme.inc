@@ -20,6 +20,15 @@ function theme_mail_logger_read_mail($mail) {
   $output .= '<div class="mail_from_label">From: </div><div class="mail_from_data">' . check_plain($mail->mailfrom) . '</div>';
   $output .= '<div class="mail_to_label">To: </div><div class="mail_to_data">' . check_plain($mail->mailto) . '</div>';
   $output .= '<div class="mail_subject_label">Subject: </div><div class="mail_subject_data">' . check_plain($mail->subject) . '</div>';
+
+  $output .= '<div class="mail_cc_label">CC: </div><div class="mail_cc_data">';
+  $output .= (empty($mail->headers['Cc']) ? "&nbsp;" : check_plain($mail->headers['Cc']));
+  $output .=  '</div>';
+
+  $output .= '<div class="mail_bcc_label">BCC: </div><div class="mail_bcc_data">';
+  $output .= (empty($mail->headers['Bcc']) ? "&nbsp;" : check_plain($mail->headers['Bcc']));
+  $output .=  '</div>';
+
   $output .= '<div class="mail_body_label">Body: </div>';
   if (preg_match('/<html.*?>(.*?)<\/html>/s', $mail->body, $mailbody)) {
     $output .= '<iframe srcdoc="<html>' . htmlspecialchars($mailbody[1], ENT_QUOTES) . '</html>" width="100%" height="500px"></iframe>';

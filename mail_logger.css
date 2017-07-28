@@ -19,6 +19,8 @@
 .mail_body_label,
 .mail_to_label,
 .mail_from_label,
+.mail_cc_label,
+.mail_bcc_label,
 .date_sent_label,
 .mail_type_label  {
   clear: both;
@@ -34,6 +36,8 @@
 .mail_subject_data,
 .mail_from_label,
 .mail_from_data,
+.mail_bcc_label,
+.mail_bcc_data,
 .mail_type_label,
 .mail_type_data  {
   background-color: #eee;   /* Lighter gray */
@@ -45,6 +49,8 @@
 .mail_body_data,
 .mail_to_label,
 .mail_to_data,
+.mail_cc_label,
+.mail_cc_data,
 .date_sent_label,
 .date_sent_data  {
 /*  background-color: #ddd;   /* Darker gray */
