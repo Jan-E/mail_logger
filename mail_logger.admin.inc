@@ -50,6 +50,13 @@ function mail_logger_admin_settings_form($form, &$form_state) {
     '#description' => t('This is the number of lines that will appear on the log display page.'),
     );
 
+  $form['mail_logger_log_empty_to'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Empty TO text'),
+    '#default_value' => variable_get('mail_logger_log_empty_to', '* empty *'),
+    '#description' => t('This will be used when there are no recipients in the "To" field.'),
+    );
+
   $form = system_settings_form($form);
   return $form;
 }
