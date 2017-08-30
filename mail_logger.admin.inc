@@ -8,6 +8,7 @@
  * Mail Logger admin form.
  */
 function mail_logger_admin_settings_form($form, &$form_state) {
+  drupal_set_message(__FUNCTION__);
   $options_log_maximum_age = array(
     0 => t('Never'),
   );
@@ -48,6 +49,13 @@ function mail_logger_admin_settings_form($form, &$form_state) {
     '#title' => t('Lines per page'),
     '#default_value' => variable_get('mail_logger_log_lines_per_page', 50),
     '#description' => t('This is the number of lines that will appear on the log display page.'),
+    );
+
+  $form['mail_logger_log_empty_to'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Empty TO text'),
+    '#default_value' => variable_get('mail_logger_log_empty_to', '* empty *'),
+    '#description' => t('This will be used when there are no recipients in the "To" field.'),
     );
 
   $form = system_settings_form($form);
