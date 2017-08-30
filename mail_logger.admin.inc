@@ -8,6 +8,7 @@
  * Mail Logger admin form.
  */
 function mail_logger_admin_settings_form($form, &$form_state) {
+  drupal_set_message(__FUNCTION__);
   $options_log_maximum_age = array(
     0 => t('Never'),
   );
