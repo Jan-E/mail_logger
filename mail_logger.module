@@ -80,6 +80,20 @@ function mail_logger_theme() {
 }
 
 /**
+ * Implements hook_module_implements_alter().
+ * Force our mail_alter to go last so everyone else gets a crack at the mail 
+ * before we try to log it.
+ */
+function mail_logger_implements_alter() {
+  // Fire our mail_alter last.
+  if ($hook == 'mail_alter' && isset($implementations['mail_logger'])) {
+    $group = $implementations['mail_logger'];
+    unset($implementations['mail_logger']);
+    $implementations['mail_logger'] = $group;
+  }
+}
+
+/**
  * Implements hook_mail_alter().
  *
  * Purpose of this function is to log all outgoing mail
