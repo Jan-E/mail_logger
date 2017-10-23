@@ -81,7 +81,7 @@ function mail_logger_theme() {
 
 /**
  * Implements hook_module_implements_alter().
- * Force our mail_alter to go last so everyone else gets a crack at the mail 
+ * Force our mail_alter to go last so everyone else gets a crack at the mail
  * before we try to log it.
  */
 function mail_logger_implements_alter() {
