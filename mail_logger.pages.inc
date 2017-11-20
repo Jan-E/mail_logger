@@ -220,7 +220,7 @@ function mail_logger_form_overview() {
   );
   $form['mail_logger_clear']['clear'] = array(
     '#type' => 'submit',
-    '#value' => t('Clear log messages'),
+    '#value' => t('Clear mail messages'),
     '#submit' => array('_mail_logger_overview_clear_logs_submit'),
   );
 
@@ -273,7 +273,6 @@ function mail_logger_form_overview_submit($form, &$form_state) {
  * Callback: Deletes mail logs.
  */
 function _mail_logger_overview_clear_logs_submit($form, &$form_state) {
-  db_delete('mail_logger')
-    ->execute();
+  db_truncate('mail_logger')->execute();
   drupal_set_message(t('Mail logs cleared.'));
 }
