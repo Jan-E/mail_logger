@@ -84,7 +84,7 @@ function mail_logger_theme() {
  * Force our mail_alter to go last so everyone else gets a crack at the mail
  * before we try to log it.
  */
-function mail_logger_implements_alter() {
+function mail_logger_module_implements_alter(&$implementations, $hook) {
   // Fire our mail_alter last.
   if ($hook == 'mail_alter' && isset($implementations['mail_logger'])) {
     $group = $implementations['mail_logger'];
