@@ -76,6 +76,10 @@ function mail_logger_overview() {
   $result = $query->execute();
 
   foreach ($result as $mail_logger) {
+    // Alter encrypted mail log records back to their original state.
+    $context = array('operation' => 'read');
+    drupal_alter('mail_logger_record', $mail_logger, $context);
+
     $subject = (empty($mail_logger->subject) ? t('Missing subject') : $mail_logger->subject);
     $mailto = $mail_logger->mailto;
     if (strpos($mailto, ';') !== FALSE) {

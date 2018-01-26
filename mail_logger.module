@@ -134,6 +134,10 @@ function mail_logger_mail_alter(&$message) {
 
     $db_specs = drupal_get_schema('mail_logger');
 
+    // Allow record to be altered.
+    $context = array('operation' => 'write');
+    drupal_alter('mail_logger_record', $record, $context);
+
     foreach ($record as $field_name => $value) {
       if (isset($db_specs[$field_name]['length'])) {
         $record[$field_name] = substr($value, $db_specs[$field_name]['length']);
@@ -307,6 +311,11 @@ function mail_logger_load($id) {
     ->execute()
     ->fetchObject();
   if ($mail) {
+
+    // Alter encrypted mail log records back to their original state.
+    $context = array('operation' => 'read');
+    drupal_alter('mail_logger_record', $mail, $context);
+
     $mail->headers = unserialize($mail->headers);
     return $mail;
   }
