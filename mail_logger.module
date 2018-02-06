@@ -123,7 +123,9 @@ function mail_logger_mail_alter(&$message) {
       'mailkey'     => $logger['id'],
       'mailto'      => $logger['to'],
       'subject'     => $logger['subject'],
-      'body'        => $logger['body'],
+      'body'        => (variable_get('mail_logger_log_mail_body', TRUE) ?
+        $logger['body'] :
+        t(variable_get('mail_logger_log_exclude_text', '[MESSAGE BODY EXCLUDED]'))),
       'mailfrom'    => $logger['from'],
       'headers'     => serialize($logger['headers']),
       'date_sent'   => $logger['date_sent'],
