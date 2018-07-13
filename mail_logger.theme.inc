@@ -77,8 +77,12 @@ function _mail_logger_split_address_string($string, $max = 70, $num_cols = 3) {
   }
 
   // It's longer than we want for a single string, so we have to break it up.
-  // We assume that the list items are separated by semi-colons.
-  $list = explode(';', $string);
+  // We assume that the list items are separated by commas.
+  $sep = ',';
+  if (strpos($string, ',') === FALSE) {
+    $sep = ';';
+  }
+  $list = explode($sep, $string);
 
   // Remove special characters in every address.
   $list = array_map('check_plain', $list);
